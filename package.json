@@ -14,6 +14,9 @@
   ],
   "scripts": {
     "build": "medusa build",
+    "link-inventory": "medusa exec ./src/scripts/link-inventory.ts",
+    "check-setup": "medusa exec ./src/scripts/check-setup.ts",
+    "seed-region": "medusa exec ./src/scripts/seed-region.ts",
     "seed": "medusa exec ./src/scripts/seed.ts",
     "start": "medusa start",
     "dev": "medusa develop",

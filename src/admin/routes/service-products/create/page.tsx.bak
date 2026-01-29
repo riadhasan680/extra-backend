@@ -1,0 +1,283 @@
+import { defineRouteConfig } from "@medusajs/admin-sdk"
+import { Tag, Plus, Trash, CloudArrowUp } from "@medusajs/icons"
+import { Container, Heading, Button, Input, Textarea, Label, Text, toast, Toaster, Badge } from "@medusajs/ui"
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+
+const CreateServiceProduct = () => {
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+  const [title, setTitle] = useState("")
+  const [subtitle, setSubtitle] = useState("")
+  const [description, setDescription] = useState("")
+  const [plans, setPlans] = useState<{ name: string; price: string }[]>([
+    { name: "3 Streams", price: "39.95" }
+  ])
+  const [imageUrl, setImageUrl] = useState("")
+  const [imageFile, setImageFile] = useState<File | null>(null)
+
+  const handleAddPlan = () => {
+    setPlans([...plans, { name: "", price: "" }])
+  }
+
+  const handleRemovePlan = (index: number) => {
+    const newPlans = [...plans]
+    newPlans.splice(index, 1)
+    setPlans(newPlans)
+  }
+
+  const handlePlanChange = (index: number, field: "name" | "price", value: string) => {
+    const newPlans = [...plans]
+    newPlans[index][field] = value
+    setPlans(newPlans)
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0]
+      setImageFile(file)
+      
+      // Create a fake local URL for preview
+      const objectUrl = URL.createObjectURL(file)
+      setImageUrl(objectUrl)
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!title) {
+      toast.error("Error", { description: "Title is required" })
+      return
+    }
+    if (plans.length === 0) {
+      toast.error("Error", { description: "At least one plan is required" })
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      let finalImageUrl = imageUrl
+
+      // 1. Upload Image if file exists
+      if (imageFile) {
+        const formData = new FormData()
+        formData.append("files", imageFile)
+        
+        const uploadRes = await fetch("/admin/uploads", {
+          method: "POST",
+          body: formData,
+        })
+        
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json()
+          if (uploadData.files && uploadData.files.length > 0) {
+            finalImageUrl = uploadData.files[0].url
+          }
+        } else {
+          console.warn("Image upload failed, proceeding with URL if available")
+        }
+      }
+
+      // 2. Prepare Product Payload
+      const payload = {
+        title,
+        subtitle,
+        description,
+        is_giftcard: false,
+        discountable: true,
+        manage_inventory: false, // Service product rule
+        requires_shipping: false, // Service product rule
+        status: "published",
+        images: finalImageUrl ? [{ url: finalImageUrl }] : [],
+        thumbnail: finalImageUrl,
+        options: [
+          {
+            title: "Plan",
+            values: plans.map(p => p.name)
+          }
+        ],
+        variants: plans.map(p => ({
+          title: p.name,
+          prices: [
+            {
+              amount: Math.round(parseFloat(p.price) * 100), // Convert to cents
+              currency_code: "usd"
+            }
+          ],
+          options: [
+            {
+              value: p.name
+            }
+          ],
+          inventory_quantity: 0,
+          manage_inventory: false
+        })),
+        metadata: {
+          ui_style: "extra-life",
+          service_type: "marketing",
+          affiliate_enabled: true
+        }
+      }
+
+      // 3. Create Product
+      const res = await fetch("/admin/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (res.ok) {
+        toast.success("Success", { description: "Service product created successfully" })
+        // Reset form or navigate
+        setTitle("")
+        setSubtitle("")
+        setDescription("")
+        setPlans([{ name: "", price: "" }])
+        setImageUrl("")
+        setImageFile(null)
+      } else {
+        const error = await res.json()
+        toast.error("Error", { description: error.message || "Failed to create product" })
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error("Error", { description: "An unexpected error occurred" })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Container className="max-w-[800px] mx-auto p-8">
+      <Toaster />
+      <div className="flex flex-col gap-y-6">
+        <div>
+          <Heading level="h1" className="text-2xl font-bold">Create Marketing Service</Heading>
+          <Text className="text-ui-fg-subtle">Add a new service product with marketing plans.</Text>
+        </div>
+
+        <div className="flex flex-col gap-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex flex-col gap-y-2">
+              <Label>Service Title</Label>
+              <Input 
+                placeholder="e.g. Twitch Stream Promotion" 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex flex-col gap-y-2">
+              <Label>Subtitle (Badge Text)</Label>
+              <Input 
+                placeholder="e.g. Embedded Advertising" 
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col gap-y-2">
+              <Label>Description</Label>
+              <Textarea 
+                placeholder="Full service details..." 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <div className="p-4 border rounded-lg bg-ui-bg-subtle">
+            <div className="flex items-center justify-between mb-4">
+              <Heading level="h2" className="text-lg">Marketing Plans (Variants)</Heading>
+              <Button variant="secondary" size="small" onClick={handleAddPlan}>
+                <Plus /> Add Plan
+              </Button>
+            </div>
+            
+            <div className="flex flex-col gap-y-3">
+              {plans.map((plan, index) => (
+                <div key={index} className="flex items-end gap-x-2">
+                  <div className="flex-1 flex flex-col gap-y-1">
+                    <Label>Plan Name</Label>
+                    <Input 
+                      placeholder="e.g. 3 Streams" 
+                      value={plan.name}
+                      onChange={(e) => handlePlanChange(index, "name", e.target.value)}
+                    />
+                  </div>
+                  <div className="w-[120px] flex flex-col gap-y-1">
+                    <Label>Price (USD)</Label>
+                    <Input 
+                      type="number" 
+                      placeholder="0.00" 
+                      value={plan.price}
+                      onChange={(e) => handlePlanChange(index, "price", e.target.value)}
+                    />
+                  </div>
+                  <Button 
+                    variant="danger" 
+                    size="small" 
+                    className="mb-[2px]"
+                    onClick={() => handleRemovePlan(index)}
+                  >
+                    <Trash />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-y-2">
+            <Label>Product Image (Mockup)</Label>
+            <div className="flex flex-col gap-y-2">
+              <div className="flex items-center gap-x-4">
+                <Input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+              </div>
+              <div className="flex items-center gap-x-2">
+                 <Text className="text-ui-fg-subtle text-small">OR</Text>
+              </div>
+              <Input 
+                  placeholder="Image URL (https://...)" 
+                  value={imageUrl}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value)
+                    setImageFile(null)
+                  }}
+              />
+            </div>
+            {imageUrl && (
+              <div className="mt-2 w-[100px] h-[100px] border rounded overflow-hidden">
+                <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
+
+          <div className="pt-4 flex justify-end">
+            <Button 
+              variant="primary" 
+              size="large" 
+              onClick={handleSubmit}
+              isLoading={loading}
+            >
+              Create Service Product
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Container>
+  )
+}
+
+export const config = defineRouteConfig({
+  label: "Create Service",
+  icon: Tag,
+})
+
+export default CreateServiceProduct
