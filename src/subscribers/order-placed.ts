@@ -82,6 +82,20 @@ export default async function handleOrderPlaced({
   for (const item of (order.items || [])) {
     const product = item.product_id ? productMap.get(item.product_id) : null
     
+    // Product-level affiliate toggle (supports both affiliate_enabled and is_affiliate_enabled)
+    // @ts-ignore
+    if (product && product.metadata) {
+      // @ts-ignore
+      const affiliateEnabled =
+        // @ts-ignore
+        product.metadata.affiliate_enabled ??
+        // @ts-ignore
+        product.metadata.is_affiliate_enabled
+      if (affiliateEnabled === false || affiliateEnabled === "false") {
+        continue
+      }
+    }
+
     // Determine Rate: Product Specific > Affiliate Global > Store Default
     let rate = storeDefaultRate
     
