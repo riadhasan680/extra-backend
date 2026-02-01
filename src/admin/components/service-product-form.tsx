@@ -33,9 +33,9 @@ export const ServiceProductForm = ({ onSuccess }: { onSuccess?: () => void }) =>
   const [description, setDescription] = useState("Promote your Live Streams with Embedded Advertising")
   
   // Plans (Variants)
-  const [plans, setPlans] = useState<{ name: string; price: string; comparePrice: string }[]>([
-    { name: "3 Streams", price: "39.95", comparePrice: "69.90" },
-    { name: "7 Streams", price: "69.95", comparePrice: "119.90" }
+  const [plans, setPlans] = useState<{ name: string; price: string; comparePrice: string; dodoPriceId: string }[]>([
+    { name: "3 Streams", price: "39.95", comparePrice: "69.90", dodoPriceId: "" },
+    { name: "7 Streams", price: "69.95", comparePrice: "119.90", dodoPriceId: "" }
   ])
   
   // Images
@@ -49,7 +49,7 @@ export const ServiceProductForm = ({ onSuccess }: { onSuccess?: () => void }) =>
   const [checkoutImageUrl, setCheckoutImageUrl] = useState("")
 
   const handleAddPlan = () => {
-    setPlans([...plans, { name: "", price: "", comparePrice: "" }])
+    setPlans([...plans, { name: "", price: "", comparePrice: "", dodoPriceId: "" }])
   }
 
   const handleRemovePlan = (index: number) => {
@@ -58,7 +58,7 @@ export const ServiceProductForm = ({ onSuccess }: { onSuccess?: () => void }) =>
     setPlans(newPlans)
   }
 
-  const handlePlanChange = (index: number, field: "name" | "price" | "comparePrice", value: string) => {
+  const handlePlanChange = (index: number, field: "name" | "price" | "comparePrice" | "dodoPriceId", value: string) => {
     const newPlans = [...plans]
     newPlans[index][field] = value
     setPlans(newPlans)
@@ -149,7 +149,8 @@ export const ServiceProductForm = ({ onSuccess }: { onSuccess?: () => void }) =>
             "Plan": p.name
           },
           metadata: {
-            compare_at_price: p.comparePrice ? Math.round(parseFloat(p.comparePrice) * 100) : null
+            compare_at_price: p.comparePrice ? Math.round(parseFloat(p.comparePrice) * 100) : null,
+            dodo_price_id: p.dodoPriceId || undefined
           }
         })),
         metadata: {
@@ -177,7 +178,7 @@ export const ServiceProductForm = ({ onSuccess }: { onSuccess?: () => void }) =>
         setSubtitle("")
         setDiscountText("")
         setDescription("")
-        setPlans([{ name: "", price: "", comparePrice: "" }])
+        setPlans([{ name: "", price: "", comparePrice: "", dodoPriceId: "" }])
         setMainImage(null); setMainImageUrl("")
         setDetailImage(null); setDetailImageUrl("")
         setCheckoutImage(null); setCheckoutImageUrl("")
@@ -280,6 +281,14 @@ export const ServiceProductForm = ({ onSuccess }: { onSuccess?: () => void }) =>
                     placeholder="0.00" 
                     value={plan.comparePrice}
                     onChange={(e) => handlePlanChange(index, "comparePrice", e.target.value)}
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-y-1">
+                  <Label>Dodo Price ID</Label>
+                  <Input 
+                    placeholder="price_..." 
+                    value={plan.dodoPriceId}
+                    onChange={(e) => handlePlanChange(index, "dodoPriceId", e.target.value)}
                   />
                 </div>
                 <Button 
