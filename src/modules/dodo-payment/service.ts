@@ -42,6 +42,7 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
 
     // Dodo Payments expects amount in minor units (cents) as an integer (i32).
     // sending floats (major units) causes 422 error.
+    // Ensure amount is integer (cents)
     const amount = Math.round(input.amount || 0); 
     const currency = input.currency_code
     const billing = input.billing_address || {}
