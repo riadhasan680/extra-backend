@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   AbstractPaymentProvider, 
   PaymentSessionStatus
 } from "@medusajs/framework/utils"
@@ -40,7 +40,9 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
        this.logger_.warn(`[Dodo] Warning: DODO_PRODUCT_ID is missing or is a placeholder. Please set a valid Product ID in .env.`)
     }
 
-    const amount = input.amount 
+    // Convert amount from cents to major units (e.g. 2000 cents -> 20.00)
+    // Dodo Payments expects the amount in major units (Dollars), not cents.
+    const amount = Number(((input.amount || 0) / 100).toFixed(2)); 
     const currency = input.currency_code
     const billing = input.billing_address || {}
     
@@ -274,3 +276,5 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
     }
   }
 }
+
+
