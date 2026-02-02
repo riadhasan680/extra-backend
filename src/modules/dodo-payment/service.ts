@@ -40,9 +40,9 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
        this.logger_.warn(`[Dodo] Warning: DODO_PRODUCT_ID is missing or is a placeholder. Please set a valid Product ID in .env.`)
     }
 
-    // Dodo Payments expects amount in Major Units (e.g. Dollars) for this API version, not Cents.
-    // If we send cents (e.g. 19900), it appears as $19,900.
-    const amount = (input.amount || 0) / 100; 
+    // Dodo Payments expects amount in minor units (cents) as an integer (i32).
+    // sending floats (major units) causes 422 error.
+    const amount = Math.round(input.amount || 0); 
     const currency = input.currency_code
     const billing = input.billing_address || {}
     
