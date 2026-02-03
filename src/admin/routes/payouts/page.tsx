@@ -81,12 +81,14 @@ const PayoutsPage = () => {
         <Table.Body>
           {loading ? (
             <Table.Row>
+              {/* @ts-ignore: colSpan is valid for td but missing in Medusa UI types */}
               <Table.Cell colSpan={6} className="text-center py-4">
                 <Text>Loading...</Text>
               </Table.Cell>
             </Table.Row>
           ) : payouts.length === 0 ? (
             <Table.Row>
+              {/* @ts-ignore: colSpan is valid for td but missing in Medusa UI types */}
               <Table.Cell colSpan={6} className="text-center py-4">
                 <Text>No payouts found</Text>
               </Table.Cell>

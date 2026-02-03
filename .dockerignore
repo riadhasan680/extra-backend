@@ -1,0 +1,10 @@
+node_modules
+.medusa
+dist
+.env
+.env.test
+.env.template
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
