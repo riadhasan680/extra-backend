@@ -5,8 +5,8 @@ console.log("Loading medusa-config.ts...")
 
 export default defineConfig({
   projectConfig: {
-    databaseUrl: process.env.DATABASE_URL,
-    redisUrl: process.env.REDIS_URL,
+    databaseUrl: process.env.DATABASE_URL || "postgres://localhost:5432/medusa",
+    redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
     workerMode: (process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server") || "shared",
     http: {
       storeCors: process.env.STORE_CORS || "http://localhost:8000",
@@ -31,10 +31,10 @@ export default defineConfig({
             resolve: "./src/modules/dodo-payment",
             id: "dodo",
             options: {
-              apiKey: process.env.DODO_SECRET_KEY,
-              webhookSecret: process.env.DODO_WEBHOOK_SECRET,
+              apiKey: process.env.DODO_SECRET_KEY || "dummy_key_for_build",
+              webhookSecret: process.env.DODO_WEBHOOK_SECRET || "dummy_secret_for_build",
               env: process.env.DODO_ENV || "sandbox",
-              productId: process.env.DODO_PRODUCT_ID, // Required for Dodo Checkout
+              productId: process.env.DODO_PRODUCT_ID || "dummy_product_id", // Required for Dodo Checkout
             }
           }
         ]
