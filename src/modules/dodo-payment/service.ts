@@ -16,7 +16,7 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
   static identifier = "dodo"
   protected logger_: Logger
   protected options_: Options
-  protected client_: DodoPayments
+  protected client_: InstanceType<typeof DodoPayments>
 
   constructor(container: { logger: Logger }, options: Options) {
     super(container, options)

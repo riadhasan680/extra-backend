@@ -1,9 +1,5 @@
 import { CreateInventoryLevelInput, ExecArgs } from "@medusajs/framework/types";
-import {
-  ContainerRegistrationKeys,
-  Modules,
-  ProductStatus,
-} from "@medusajs/utils";
+import { ContainerRegistrationKeys, ProductStatus } from "@medusajs/utils";
 import {
   createWorkflow,
   transform,
@@ -43,7 +39,7 @@ const updateStoreCurrencies = createWorkflow(
                 currency_code: currency.currency_code,
                 is_default: currency.is_default ?? false,
               };
-            }
+            },
           ),
         },
       };
@@ -52,16 +48,16 @@ const updateStoreCurrencies = createWorkflow(
     const stores = updateStoresStep(normalizedInput);
 
     return new WorkflowResponse(stores);
-  }
+  },
 );
 
 export default async function seedDemoData({ container }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
   const link = container.resolve(ContainerRegistrationKeys.LINK);
   const query = container.resolve(ContainerRegistrationKeys.QUERY);
-  const fulfillmentModuleService = container.resolve(Modules.FULFILLMENT);
-  const salesChannelModuleService = container.resolve(Modules.SALES_CHANNEL);
-  const storeModuleService = container.resolve(Modules.STORE);
+  const fulfillmentModuleService = container.resolve("fulfillment");
+  const salesChannelModuleService = container.resolve("sales_channel");
+  const storeModuleService = container.resolve("store");
 
   const countries = ["gb", "de", "dk", "se", "fr", "es", "it"];
 
@@ -74,7 +70,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
   if (!defaultSalesChannel.length) {
     // create the default sales channel
     const { result: salesChannelResult } = await createSalesChannelsWorkflow(
-      container
+      container,
     ).run({
       input: {
         salesChannelsData: [
@@ -137,7 +133,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
 
   logger.info("Seeding stock location data...");
   const { result: stockLocationResult } = await createStockLocationsWorkflow(
-    container
+    container,
   ).run({
     input: {
       locations: [
@@ -164,10 +160,10 @@ export default async function seedDemoData({ container }: ExecArgs) {
   });
 
   await link.create({
-    [Modules.STOCK_LOCATION]: {
+    stock_location: {
       stock_location_id: stockLocation.id,
     },
-    [Modules.FULFILLMENT]: {
+    fulfillment: {
       fulfillment_provider_id: "manual_manual",
     },
   });
@@ -234,10 +230,10 @@ export default async function seedDemoData({ container }: ExecArgs) {
   });
 
   await link.create({
-    [Modules.STOCK_LOCATION]: {
+    stock_location: {
       stock_location_id: stockLocation.id,
     },
-    [Modules.FULFILLMENT]: {
+    fulfillment: {
       fulfillment_set_id: fulfillmentSet.id,
     },
   });
@@ -373,7 +369,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
   logger.info("Seeding product data...");
 
   const { result: categoryResult } = await createProductCategoriesWorkflow(
-    container
+    container,
   ).run({
     input: {
       product_categories: [
