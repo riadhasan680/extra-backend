@@ -13,20 +13,10 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
   if (cart.completed_at) {
     // If completed, find the order and return it (Handling Webhook Race Condition)
-    const orders = await orderService.listOrders({
-      filters: {
-        // cart_id: id // Wait, listOrders filters might differ in v2
-        // We usually store cart_id in metadata or there is a link
-      }
-    })
-    
-    // Better way: use RemoteLink or just query by metadata if we stored it
-    // In v2, Order has a cart_id field? No, it's decoupled.
-    // But the webhook stored it in metadata!
-    
+    // We search by metadata since we store cart_id there in the webhook
     const [order] = await orderService.listOrders({
         metadata: { cart_id: id }
-    })
+    } as any)
 
     if (order) {
         return res.json({
