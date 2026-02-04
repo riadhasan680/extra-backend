@@ -185,10 +185,15 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
     try {
       const session = await this.client_.checkoutSessions.retrieve(sessionId);
       this.logger_.info(
-        `[Dodo] Dodo API Session Status: ${session.payment_status} for ${sessionId}`,
+        `[Dodo] Dodo API Session Status: ${session.payment_status}, Status: ${session.status} for ${sessionId}`,
       );
+      this.logger_.info(`[Dodo] Full Session Data: ${JSON.stringify(session)}`);
 
-      if (session.payment_status === "succeeded") {
+      if (
+        session.payment_status === "succeeded" ||
+        session.payment_status === "paid" ||
+        session.status === "completed"
+      ) {
         return {
           status: PaymentSessionStatus.AUTHORIZED,
           data: {
@@ -240,9 +245,14 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
 
     try {
       const session = await this.client_.checkoutSessions.retrieve(sessionId);
+      if (
+        session.payment_status === "succeeded" ||
+        session.payment_status === "paid" ||
+        session.status === "completed"
+      ) {
+        return { status: PaymentSessionStatus.AUTHORIZED };
+      }
       switch (session.payment_status) {
-        case "succeeded":
-          return { status: PaymentSessionStatus.AUTHORIZED };
         case "failed":
         case "cancelled":
           return { status: PaymentSessionStatus.CANCELED };
