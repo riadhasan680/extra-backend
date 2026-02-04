@@ -19,6 +19,9 @@ COPY . .
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 ENV MEDUSA_DISABLE_TELEMETRY=1
 
+# Ensure these directories exist even if empty, so final stage doesn't fail
+RUN mkdir -p public src
+
 RUN npm run build
 
 FROM node:20-slim AS runner

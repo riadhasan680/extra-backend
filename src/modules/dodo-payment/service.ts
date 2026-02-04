@@ -3,7 +3,7 @@ import {
   PaymentSessionStatus,
 } from "@medusajs/framework/utils";
 import { Logger } from "@medusajs/types";
-import DodoPayments from "dodopayments";
+import { DodoPayments } from "dodopayments";
 
 type Options = {
   apiKey: string;
