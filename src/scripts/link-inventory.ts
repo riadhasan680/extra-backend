@@ -2,7 +2,7 @@ import {
   ExecArgs,
   ISalesChannelModuleService,
 } from "@medusajs/framework/types";
-import { ContainerRegistrationKeys } from "@medusajs/utils";
+import { ContainerRegistrationKeys, Modules } from "@medusajs/utils";
 
 export default async function linkInventory({ container }: ExecArgs) {
   const salesChannelService: ISalesChannelModuleService =
@@ -40,10 +40,10 @@ export default async function linkInventory({ container }: ExecArgs) {
     );
     await remoteLink.create([
       {
-        sales_channel: {
+        [Modules.SALES_CHANNEL]: {
           sales_channel_id: salesChannel.id,
         },
-        stock_location: {
+        [Modules.STOCK_LOCATION]: {
           stock_location_id: stockLocation.id,
         },
       },

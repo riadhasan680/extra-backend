@@ -1,4 +1,4 @@
-declare module '@medusajs/framework/utils' {
+declare module "@medusajs/framework/utils" {
   export class AbstractPaymentProvider<T = any> {
     constructor(container: any, options: T);
     static identifier: string;
@@ -11,7 +11,10 @@ declare module '@medusajs/framework/utils' {
     refundPayment(paymentSessionData: any, refundAmount: number): Promise<any>;
     retrievePayment(paymentSessionData: any): Promise<any>;
     updatePayment(context: any): Promise<any>;
-    updatePaymentData(sessionId: string, data: Record<string, unknown>): Promise<any>;
+    updatePaymentData(
+      sessionId: string,
+      data: Record<string, unknown>,
+    ): Promise<any>;
   }
 
   export enum PaymentSessionStatus {
@@ -25,13 +28,18 @@ declare module '@medusajs/framework/utils' {
 
   export const Modules: {
     PAYMENT: string;
+    SALES_CHANNEL: string;
+    STOCK_LOCATION: string;
+    REGION: string;
+    STORE: string;
+    FULFILLMENT: string;
   };
 
   export function ModuleProvider(module: string, implementation: any): any;
-  
+
   export class MedusaService {
     constructor(models: any);
   }
 }
 
-declare module 'dodopayments';
+declare module "dodopayments";
