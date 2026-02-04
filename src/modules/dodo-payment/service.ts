@@ -184,15 +184,16 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
 
     try {
       const session = await this.client_.checkoutSessions.retrieve(sessionId);
+      const sessionAny = session as any;
       this.logger_.info(
-        `[Dodo] Dodo API Session Status: ${session.payment_status}, Status: ${session.status} for ${sessionId}`,
+        `[Dodo] Dodo API Session Status: ${session.payment_status}, Status: ${sessionAny.status} for ${sessionId}`,
       );
       this.logger_.info(`[Dodo] Full Session Data: ${JSON.stringify(session)}`);
 
       if (
         session.payment_status === "succeeded" ||
-        session.payment_status === "paid" ||
-        session.status === "completed"
+        sessionAny.payment_status === "paid" ||
+        sessionAny.status === "completed"
       ) {
         return {
           status: PaymentSessionStatus.AUTHORIZED,
@@ -245,10 +246,11 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
 
     try {
       const session = await this.client_.checkoutSessions.retrieve(sessionId);
+      const sessionAny = session as any;
       if (
         session.payment_status === "succeeded" ||
-        session.payment_status === "paid" ||
-        session.status === "completed"
+        sessionAny.payment_status === "paid" ||
+        sessionAny.status === "completed"
       ) {
         return { status: PaymentSessionStatus.AUTHORIZED };
       }
