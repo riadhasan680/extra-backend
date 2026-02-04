@@ -23,7 +23,7 @@ declare module "@medusajs/framework/utils" {
     REQUIRES_MORE = "requires_more",
     ERROR = "error",
     CANCELED = "canceled",
-    CAPTURED = "CAPTURED",
+    CAPTURED = "captured",
   }
 
   export const Modules: {

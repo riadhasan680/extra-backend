@@ -16,7 +16,7 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
   static identifier = "dodo";
   protected logger_: Logger;
   protected options_: Options;
-  protected client_: any;
+  protected client_: InstanceType<typeof DodoPayments>;
 
   constructor(container: { logger: Logger }, options: Options) {
     super(container, options);
@@ -227,7 +227,7 @@ export default class DodoPaymentProviderService extends AbstractPaymentProvider<
   }> {
     this.logger_.info(`[Dodo] Capturing payment: ${JSON.stringify(input)}`);
     return {
-      status: "captured" as any,
+      status: PaymentSessionStatus.CAPTURED,
       data: input,
     };
   }
