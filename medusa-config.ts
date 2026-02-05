@@ -6,6 +6,13 @@ console.log("Loading medusa-config.ts...")
 export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL || "postgres://localhost:5432/medusa",
+    databaseDriverOptions: process.env.NODE_ENV === "production" ? {
+      connection: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
+    } : {},
     // Only configure Redis if a URL is provided in the environment.
     // This prevents connection errors when running locally without Redis.
     ...(process.env.REDIS_URL ? { redisUrl: process.env.REDIS_URL } : {}),
