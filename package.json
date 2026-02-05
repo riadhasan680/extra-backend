@@ -19,7 +19,7 @@
     "check-setup": "medusa exec ./src/scripts/check-setup.ts",
     "seed-region": "medusa exec ./src/scripts/seed-region.ts",
     "seed": "medusa exec ./src/scripts/seed.ts",
-    "start": "NODE_OPTIONS='--max-old-space-size=512' medusa start --host 0.0.0.0",
+    "start": "medusa db:migrate && NODE_OPTIONS='--max-old-space-size=512' medusa start --host 0.0.0.0",
     "dev": "medusa develop",
     "test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
     "test:integration:modules": "TEST_TYPE=integration:modules NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
