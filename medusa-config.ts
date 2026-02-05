@@ -12,8 +12,8 @@ export default defineConfig({
     workerMode: (process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server") || "shared",
     http: {
       storeCors: process.env.STORE_CORS || "http://localhost:8000",
-      adminCors: process.env.ADMIN_CORS || "http://localhost:7001",
-      authCors: process.env.AUTH_CORS || "http://localhost:8000",
+      adminCors: process.env.ADMIN_CORS || process.env.RENDER_EXTERNAL_URL || "http://localhost:7001",
+      authCors: process.env.AUTH_CORS || process.env.RENDER_EXTERNAL_URL || "http://localhost:8000",
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     }
@@ -45,6 +45,6 @@ export default defineConfig({
   ],
   admin: {
     disable: false,
-    backendUrl: process.env.BACKEND_URL || "http://localhost:9000",
+    backendUrl: process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:9000",
   }
 })
