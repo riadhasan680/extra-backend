@@ -13,8 +13,7 @@
     "medusa"
   ],
   "scripts": {
-    "build": "medusa build",
-    "build:vercel": "medusa build && rm -rf public && mkdir public && cp -r .medusa/server/public/admin/* public/",
+    "build": "medusa build --skip-admin",
     "link-inventory": "medusa exec ./src/scripts/link-inventory.ts",
     "check-setup": "medusa exec ./src/scripts/check-setup.ts",
     "seed-region": "medusa exec ./src/scripts/seed-region.ts",
