@@ -1,12 +1,9 @@
 console.log("DEBUG: Loading src/modules/marketing/service.ts");
 import { MedusaService } from "@medusajs/utils"
-
-/*
 import { Affiliate } from "./models/affiliate"
 import { Wallet } from "./models/wallet"
 import { Commission } from "./models/commission"
 import { Payout } from "./models/payout"
-*/
 
 type ProcessCommissionInput = {
     order_id: string
@@ -17,10 +14,10 @@ type ProcessCommissionInput = {
 }
 
 class MarketingModuleService extends MedusaService({
-  // Affiliate,
-  // Wallet,
-  // Commission,
-  // Payout,
+  Affiliate,
+  Wallet,
+  Commission,
+  Payout,
 }) {
   async processCommission(input: ProcessCommissionInput) {
       console.log("[Marketing] Processing commission (Logic disabled for debug)")

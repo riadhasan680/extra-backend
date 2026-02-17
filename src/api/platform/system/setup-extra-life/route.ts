@@ -117,6 +117,8 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       },
     }
 
+    let discountVariantId: string | undefined
+
     try {
       let createdProduct
       if (typeof productModule.createProducts === "function") {
@@ -132,6 +134,165 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       }
     } catch (e: any) {
       results.warnings.push(`Failed to create Twitch product: ${e.message}`)
+    }
+
+    // 4) Create 30% OFF New Customer product (used as bundle extra item)
+    try {
+      const discountPayload: any = {
+        title: "Twitch Stream Promotion - Embedding (30% OFF NEW CUSTOMER DISCOUNT)",
+        subtitle: "30% OFF New Customer Discount",
+        description:
+          "Discounted Twitch stream promotion for new customers, used as part of Unlimited bundle.",
+        status: "published",
+        manage_inventory: false,
+        requires_shipping: false,
+        is_taxable: false,
+        categories: twitchCatId ? [{ id: twitchCatId }] : [],
+        variants: [
+          {
+            title: "3 Streams (30% OFF)",
+            prices: [{ currency_code: "USD", amount: 3995 }],
+          },
+        ],
+        metadata: {
+          service_type: "twitch",
+          service_model: "embedded",
+          platform: "twitch",
+          delivery_time: "24-72h",
+          affiliate_enabled: true,
+          service_category: "stream_promotion",
+          discount_type: "new_customer_30",
+        },
+      }
+
+      let createdDiscount
+      if (typeof productModule.createProducts === "function") {
+        createdDiscount = await productModule.createProducts(discountPayload)
+      } else if (typeof productModule.createProduct === "function") {
+        createdDiscount = await productModule.createProduct(discountPayload)
+      } else {
+        results.warnings.push("Product create method not found; skipping 30% OFF product creation")
+      }
+
+      if (createdDiscount) {
+        const discountProd = Array.isArray(createdDiscount)
+          ? createdDiscount[0]
+          : createdDiscount
+        results.created_products.push({
+          id: discountProd.id,
+          title: discountProd.title,
+        })
+        if (discountProd.variants?.[0]?.id) {
+          discountVariantId = discountProd.variants[0].id
+        } else {
+          results.warnings.push("30% OFF product created but variant ID missing")
+        }
+      }
+    } catch (e: any) {
+      results.warnings.push(`Failed to create 30% OFF product: ${e.message}`)
+    }
+
+    // 5) Create or update Unlimited Twitch product (with bundle metadata)
+    try {
+      const unlimitedMetadata: any = {
+        service_type: "twitch",
+        service_model: "embedded",
+        platform: "twitch",
+        delivery_time: "24-72h",
+        affiliate_enabled: true,
+        service_category: "stream_promotion",
+        bundle_main_quantity: 5,
+        bundle_extra_quantity: 8,
+        duration_label: "1 Month",
+        original_price_cents: 65995,
+      }
+
+      if (discountVariantId) {
+        unlimitedMetadata.bundle_extra_variant_id = discountVariantId
+      } else {
+        results.warnings.push(
+          "Unlimited product created without bundle_extra_variant_id (30% OFF variant missing)",
+        )
+      }
+
+      const unlimitedPayload: any = {
+        title:
+          "UNLIMITED Twitch Stream Promotion - Embedding - One Month (Recurring)",
+        subtitle: "Unlimited Monthly Twitch Promotion",
+        description:
+          "Unlimited Twitch stream promotion for one month via embedded placements.",
+        status: "published",
+        manage_inventory: false,
+        requires_shipping: false,
+        is_taxable: false,
+        categories: twitchCatId ? [{ id: twitchCatId }] : [],
+        variants: [
+          {
+            title: "1 Month",
+            prices: [{ currency_code: "USD", amount: 25000 }],
+          },
+        ],
+        metadata: unlimitedMetadata,
+      }
+
+      let createdUnlimited
+      try {
+        if (typeof productModule.createProducts === "function") {
+          createdUnlimited = await productModule.createProducts(unlimitedPayload)
+        } else if (typeof productModule.createProduct === "function") {
+          createdUnlimited = await productModule.createProduct(unlimitedPayload)
+        } else {
+          results.warnings.push(
+            "Product create method not found; skipping Unlimited Twitch product creation",
+          )
+        }
+      } catch (e: any) {
+        const msg = String(e?.message || "")
+        if (msg.includes("handle") && msg.includes("already exists")) {
+          if (typeof productModule.listProducts === "function") {
+            const existingUnlimited = await productModule.listProducts({
+              handle:
+                "unlimited-twitch-stream-promotion-embedding-one-month-recurring",
+            })
+            const current = existingUnlimited?.[0]
+            if (current && typeof productModule.updateProducts === "function") {
+              const mergedMetadata = {
+                ...(current.metadata || {}),
+                ...unlimitedMetadata,
+              }
+              await productModule.updateProducts(current.id, {
+                metadata: mergedMetadata,
+                status: "published",
+                manage_inventory: false,
+                requires_shipping: false,
+                is_taxable: false,
+              })
+              results.created_products.push({
+                id: current.id,
+                title: current.title,
+                updated: true,
+              })
+              results.warnings.push(
+                "Unlimited Twitch product already existed; metadata was updated.",
+              )
+              return
+            }
+          }
+        }
+        throw e
+      }
+
+      if (createdUnlimited) {
+        const unlimitedProd = Array.isArray(createdUnlimited)
+          ? createdUnlimited[0]
+          : createdUnlimited
+        results.created_products.push({
+          id: unlimitedProd.id,
+          title: unlimitedProd.title,
+        })
+      }
+    } catch (e: any) {
+      results.warnings.push(`Failed to create Unlimited Twitch product: ${e.message}`)
     }
 
     res.json({ message: "Setup completed", results })
